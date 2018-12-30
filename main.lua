@@ -17,11 +17,13 @@ function love.load()
 		thinkTime = 6.0,
 	}
 
+	-- Limit search using number of iterations
 	function mctsCfg.canKeepThinking()
 		mctsCfg.numIterations = mctsCfg.numIterations - 1
 		return mctsCfg.numIterations > 0
 	end
 
+	-- Limit search using time
 	function mctsCfg.canKeepThinking()
 		return love.timer.getTime() - mctsCfg.startTime < mctsCfg.thinkTime
 	end
