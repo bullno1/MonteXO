@@ -80,6 +80,7 @@ end
 function m.think(cfg, state)
 	local rule = cfg.rule
 	local exploreParam = cfg.exploreParam
+	local canKeepThinking = cfg.canKeepThinking
 
 	local tree = Tree.new(rule.clone(state))
 	local root = Tree.getRoot(tree)
@@ -91,7 +92,7 @@ function m.think(cfg, state)
 	local checkState = rule.checkState
 	local isResultTerminal = rule.isResultTerminal
 
-	for i = 1, cfg.numIterations do
+	while canKeepThinking() do
 		local node = selectNode(tree, root, calculateSelectScore)
 		local result = checkState(getState(tree, node))
 
