@@ -20,26 +20,33 @@ function m.clone(state)
 	}
 end
 
-local function checkWinDir(state, piece, x, y, vx, vy)
-	local board = state.board
-	for i = 1, state.winRequirement - 1 do
-		local adjacentX = x + vx * i
-		local adjacentY = y + vy * i
-		if not Grid.isValid(board, adjacentX, adjacentY) then return false end
+local function checkWinDir(board, winRequirement, x, y, vx, vy)
+	local maxX = x + vx * (winRequirement - 1)
+	local maxY = y + vy * (winRequirement - 1)
+	if not Grid.isValid(board, maxX, maxY) then return false end
 
-		local adjacentPiece = Grid.get(board, adjacentX, adjacentY)
-		if adjacentPiece ~= piece then return false end
+	local piece = Grid.get(board, x, y)
+	for i = 1, winRequirement - 1 do
+		local checkX = x + vx * i
+		local checkY = y + vy * i
+		local checkPiece = Grid.get(board, checkX, checkY)
+
+		if checkPiece ~= piece then return false end
 	end
 
 	return true
 end
 
-local function checkWin(state, piece, x, y)
+local function checkWin(board, winRequirement, x, y)
 	return false
-		or checkWinDir(state, piece, x, y, 1, 0)
-		or checkWinDir(state, piece, x, y, 0, 1)
-		or checkWinDir(state, piece, x, y, 1, 1)
-		or checkWinDir(state, piece, x, y, 1, -1)
+		or checkWinDir(board, winRequirement, x, y, -1, -1)
+		or checkWinDir(board, winRequirement, x, y, -1, 0)
+		or checkWinDir(board, winRequirement, x, y, -1, 1)
+		or checkWinDir(board, winRequirement, x, y, 0, -1)
+		or checkWinDir(board, winRequirement, x, y, 0, 1)
+		or checkWinDir(board, winRequirement, x, y, 1, -1)
+		or checkWinDir(board, winRequirement, x, y, 1, 0)
+		or checkWinDir(board, winRequirement, x, y, 1, 1)
 end
 
 local function getOpponent(piece)
@@ -53,25 +60,17 @@ end
 function m.checkState(state)
 	if state.numEmptyCells == 0 then return 'draw' end
 
-	local lastX, lastY= state.lastX, state.lastY
+	local lastX, lastY = state.lastX, state.lastY
 	if state.lastX == nil then return 'undecided' end
 
 	local board = state.board
 	local winRequirement = state.winRequirement
 
-	local width, height = Grid.getSize(state.board)
-
-	for x = math.max(1, lastX - winRequirement + 1), math.min(width, lastX + winRequirement - 1) do
-		for y = math.max(1, lastY - winRequirement + 1), math.min(width, lastY + winRequirement - 1) do
-			local piece = Grid.get(board, x, y)
-
-			if piece and checkWin(state, piece, x, y) then
-				return piece
-			end
-		end
+	if not checkWin(board, winRequirement, lastX, lastY) then
+		return 'undecided'
+	else
+		return Grid.get(board, lastX, lastY)
 	end
-
-	return 'undecided'
 end
 
 function m.isResultTerminal(result)

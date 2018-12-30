@@ -44,7 +44,9 @@ function m.toIndex(grid, x, y)
 end
 
 function m.fromIndex(grid, index)
-	return math.fmod(index, grid.height), math.floor(index / grid.height) + 1
+	local height = grid.height
+	local index = index + height - 1
+	return math.fmod(index, height) + 1, math.floor(index / height)
 end
 
 return m
