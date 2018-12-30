@@ -1,4 +1,4 @@
-local Tree = require('Mcts.Tree')
+local Tree = require('Tree')
 
 local m = {}
 
