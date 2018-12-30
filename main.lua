@@ -9,11 +9,12 @@ local GAP = 3
 local game, mctsCfg
 
 function love.load()
-	game = Rule.newGame(10, 10, 5)
+	game = Rule.newGame(8, 8, 5)
+	--game = Rule.newGame(3, 3, 3)
 	mctsCfg = {
 		rule = Rule,
-		exploreParam = 1.1,
-		numIterations = 10000,
+		exploreParam = 1.5,
+		numIterations = 20000,
 	}
 
 	--local move = Mcts.think(mctsCfg, game)

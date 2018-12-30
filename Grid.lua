@@ -43,4 +43,8 @@ function m.toIndex(grid, x, y)
 	return x + (y - 1) * grid.height
 end
 
+function m.fromIndex(grid, index)
+	return math.fmod(index, grid.height), math.floor(index / grid.height) + 1
+end
+
 return m

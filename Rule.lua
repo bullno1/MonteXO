@@ -7,6 +7,7 @@ function m.newGame(width, height, winRequirement)
 		board = Grid.new(width, height),
 		winRequirement = winRequirement,
 		nextPlayer = 'x',
+		numEmptyCells = width * height,
 	}
 end
 
@@ -15,6 +16,7 @@ function m.clone(state)
 		board = Grid.clone(state.board),
 		winRequirement = state.winRequirement,
 		nextPlayer = state.nextPlayer,
+		numEmptyCells = state.numEmptyCells,
 	}
 end
 
@@ -25,7 +27,7 @@ local function checkWinDir(state, piece, x, y, vx, vy)
 		local adjacentY = y + vy * i
 		if not Grid.isValid(board, adjacentX, adjacentY) then return false end
 
-		local adjacentPiece = Grid.get(board, x + vx * i, y + vy * i)
+		local adjacentPiece = Grid.get(board, adjacentX, adjacentY)
 		if adjacentPiece ~= piece then return false end
 	end
 
@@ -40,28 +42,36 @@ local function checkWin(state, piece, x, y)
 		or checkWinDir(state, piece, x, y, 1, -1)
 end
 
-function m.checkState(state)
-	local board = state.board
-	local width, height = Grid.getSize(board)
+local function getOpponent(piece)
+	if piece == 'x' then
+		return 'o'
+	else
+		return 'x'
+	end
+end
 
-	local hasEmpty = false
-	for x = 1, width do
-		for y = 1, height do
+function m.checkState(state)
+	if state.numEmptyCells == 0 then return 'draw' end
+
+	local lastX, lastY= state.lastX, state.lastY
+	if state.lastX == nil then return 'undecided' end
+
+	local board = state.board
+	local winRequirement = state.winRequirement
+
+	local width, height = Grid.getSize(state.board)
+
+	for x = math.max(1, lastX - winRequirement + 1), math.min(width, lastX + winRequirement - 1) do
+		for y = math.max(1, lastY - winRequirement + 1), math.min(width, lastY + winRequirement - 1) do
 			local piece = Grid.get(board, x, y)
 
-			if piece then
-				if checkWin(state, piece, x, y) then return piece end
-			else
-				hasEmpty = true
+			if piece and checkWin(state, piece, x, y) then
+				return piece
 			end
 		end
 	end
 
-	if hasEmpty then
-		return 'undecided'
-	else
-		return 'draw'
-	end
+	return 'undecided'
 end
 
 function m.isResultTerminal(result)
@@ -96,15 +106,15 @@ end
 function m.play(state, x, y)
 	if y == nil then
 		Grid.putIndex(state.board, x, state.nextPlayer)
+		state.lastX, state.lastY = Grid.fromIndex(state.board, x)
 	else
 		Grid.put(state.board, x, y, state.nextPlayer)
+		state.lastX = x
+		state.lastY = y
 	end
 
-	if state.nextPlayer == 'x' then
-		state.nextPlayer = 'o'
-	else
-		state.nextPlayer = 'x'
-	end
+	state.nextPlayer = getOpponent(state.nextPlayer)
+	state.numEmptyCells = state.numEmptyCells - 1
 end
 
 function m.getReward(state, result)
