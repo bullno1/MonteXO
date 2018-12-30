@@ -9,12 +9,12 @@ local GAP = 5
 local game, mctsCfg
 
 function love.load()
-	game = Rule.newGame(15, 15, 5)
+	game = Rule.newGame(10, 10, 5)
 	mctsCfg = {
 		rule = Rule,
-		exploreParam = 0.5,
+		exploreParam = 0.6,
 		maxIterations = 60000,
-		thinkTime = 7.0,
+		thinkTime = 6.0,
 	}
 
 	function mctsCfg.canKeepThinking()
