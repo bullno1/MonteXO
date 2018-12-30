@@ -2,12 +2,27 @@ local Grid = require('Grid')
 
 local m = {}
 
+local function cloneTable(table)
+	local clone = {}
+	for k, v in pairs(table) do
+		clone[k] = v
+	end
+	return clone
+end
+
 function m.newGame(width, height, winRequirement)
+	local validMoves = {}
+
+	for i = 1, width * height do
+		validMoves[i] = true
+	end
+
 	return {
 		board = Grid.new(width, height),
 		winRequirement = winRequirement,
 		nextPlayer = 'x',
 		numEmptyCells = width * height,
+		validMoves = validMoves,
 	}
 end
 
@@ -17,6 +32,7 @@ function m.clone(state)
 		winRequirement = state.winRequirement,
 		nextPlayer = state.nextPlayer,
 		numEmptyCells = state.numEmptyCells,
+		validMoves = cloneTable(state.validMoves),
 	}
 end
 
@@ -78,18 +94,12 @@ function m.isResultTerminal(result)
 end
 
 function m.getValidMoves(state)
-	local board = state.board
-	local boardWidth, boardHeight = Grid.getSize(board)
 	local moves = {}
 	local numMoves = 0
 
-	for x = 1, boardWidth do
-		for y = 1, boardHeight do
-			if m.isValid(state, x, y) then
-				numMoves = numMoves + 1
-				moves[numMoves] = Grid.toIndex(board, x, y)
-			end
-		end
+	for move in pairs(state.validMoves) do
+		numMoves = numMoves + 1
+		moves[numMoves] = move
 	end
 
 	return moves, numMoves
@@ -103,17 +113,20 @@ function m.isValid(state, x, y)
 end
 
 function m.play(state, x, y)
+	local index
 	if y == nil then
-		Grid.putIndex(state.board, x, state.nextPlayer)
-		state.lastX, state.lastY = Grid.fromIndex(state.board, x)
+		index = x
+		x, y = Grid.fromIndex(state.board, x)
 	else
-		Grid.put(state.board, x, y, state.nextPlayer)
-		state.lastX = x
-		state.lastY = y
+		index = Grid.toIndex(state.board, x, y)
 	end
+
+	Grid.putIndex(state.board, index, state.nextPlayer)
+	state.lastX, state.lastY = x, y
 
 	state.nextPlayer = getOpponent(state.nextPlayer)
 	state.numEmptyCells = state.numEmptyCells - 1
+	state.validMoves[index] = nil
 end
 
 function m.getReward(state, result)
