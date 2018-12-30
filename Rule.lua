@@ -11,7 +11,7 @@ function m.newGame(width, height, winRequirement)
 end
 
 function m.clone(state)
-	local clone = {
+	return {
 		board = Grid.clone(state.board),
 		winRequirement = state.winRequirement,
 		nextPlayer = state.nextPlayer,
@@ -21,6 +21,10 @@ end
 local function checkWinDir(state, piece, x, y, vx, vy)
 	local board = state.board
 	for i = 1, state.winRequirement - 1 do
+		local adjacentX = x + vx * i
+		local adjacentY = y + vy * i
+		if not Grid.isValid(board, adjacentX, adjacentY) then return false end
+
 		local adjacentPiece = Grid.get(board, x + vx * i, y + vy * i)
 		if adjacentPiece ~= piece then return false end
 	end
@@ -65,6 +69,21 @@ function m.isResultTerminal(result)
 end
 
 function m.getValidMoves(state)
+	local board = state.board
+	local boardWidth, boardHeight = Grid.getSize(board)
+	local moves = {}
+	local numMoves = 0
+
+	for x = 1, boardWidth do
+		for y = 1, boardHeight do
+			if m.isValid(state, x, y) then
+				numMoves = numMoves + 1
+				moves[numMoves] = Grid.toIndex(board, x, y)
+			end
+		end
+	end
+
+	return moves, numMoves
 end
 
 function m.isValid(state, x, y)
@@ -75,12 +94,26 @@ function m.isValid(state, x, y)
 end
 
 function m.play(state, x, y)
-	Grid.put(state.board, x, y, state.nextPlayer)
+	if y == nil then
+		Grid.putIndex(state.board, x, state.nextPlayer)
+	else
+		Grid.put(state.board, x, y, state.nextPlayer)
+	end
 
 	if state.nextPlayer == 'x' then
 		state.nextPlayer = 'o'
 	else
 		state.nextPlayer = 'x'
+	end
+end
+
+function m.getReward(state, result)
+	if result == 'draw' then
+		return 0.5
+	elseif result ~= state.nextPlayer then
+		return 1
+	else
+		return 0
 	end
 end
 

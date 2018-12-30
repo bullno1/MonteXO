@@ -31,8 +31,16 @@ function m.put(grid, x, y, val)
 	grid[x + (y - 1) * grid.height] = val
 end
 
+function m.putIndex(grid, index, val)
+	grid[index] = val
+end
+
 function m.get(grid, x, y)
 	return grid[x + (y - 1) * grid.height]
+end
+
+function m.toIndex(grid, x, y)
+	return x + (y - 1) * grid.height
 end
 
 return m

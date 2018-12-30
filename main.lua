@@ -12,10 +12,12 @@ function love.load()
 	game = Rule.newGame(10, 10, 5)
 	mctsCfg = {
 		rule = Rule,
-		exploreParam = 1.5,
-		role = 'o',
-		numIterations = 1000,
+		exploreParam = 1.1,
+		numIterations = 10000,
 	}
+
+	--local move = Mcts.think(mctsCfg, game)
+	--Rule.play(game, move)
 end
 
 function love.update(dt)
@@ -60,11 +62,25 @@ function love.keypressed(key, scancode, isRepeat)
 	end
 end
 
+local function isGameFinished(rule, game)
+	return rule.isResultTerminal(rule.checkState(game))
+end
+
 function love.mousereleased(x, y, button)
+	if isGameFinished(Rule, game) then return end
+
 	local boardX = math.floor(x / TILE_WIDTH) + 1
 	local boardY = math.floor(y / TILE_HEIGHT) + 1
 
 	if Rule.isValid(game, boardX, boardY) then
 		Rule.play(game, boardX, boardY)
+
+		if not isGameFinished(Rule, game) then
+			collectgarbage("stop")
+			local move = Mcts.think(mctsCfg, game)
+			collectgarbage()
+			collectgarbage("restart")
+			Rule.play(game, move)
+		end
 	end
 end
