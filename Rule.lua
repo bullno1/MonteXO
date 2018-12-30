@@ -102,7 +102,7 @@ local function calculateMoveDistance(board, index, x, y)
 	return diffX * diffX + diffY * diffY
 end
 
-function m.getValidMoves(state, sorted)
+function m.getValidMoves(state, purpose)
 	local moves = {}
 	local numMoves = 0
 
@@ -112,7 +112,7 @@ function m.getValidMoves(state, sorted)
 	end
 
 	local lastX, lastY = state.lastX, state.lastY
-	if sorted and lastX ~= nil then
+	if purpose == 'expansion' and lastX ~= nil then
 		table.sort(moves, function(lhs, rhs)
 			local lhsDistanceSquared = calculateMoveDistance(state.board, lhs, lastX, lastY)
 			local rhsDistanceSquared = calculateMoveDistance(state.board, rhs, lastX, lastY)

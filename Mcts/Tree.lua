@@ -70,7 +70,7 @@ function m.expandNode(tree, node, rule)
 	local state = m.getState(tree, node)
 
 	if progress == nil then -- not yet started
-		local moves, numMoves = rule.getValidMoves(state, true)
+		local moves, numMoves = rule.getValidMoves(state, 'expansion')
 
 		local newNode = tree.numNodes
 		for i, move in ipairs(moves) do

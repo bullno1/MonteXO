@@ -1,4 +1,4 @@
-local Tree = require('Tree')
+local Tree = require('Mcts.Tree')
 
 local m = {}
 
@@ -66,7 +66,7 @@ local function simulate(rule, state)
 			return result
 		end
 
-		local moves, numMoves = getValidMoves(state)
+		local moves, numMoves = getValidMoves(state, 'simulation')
 		local chosenMove = moves[random(numMoves)]
 		play(state, chosenMove)
 	end
