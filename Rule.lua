@@ -147,6 +147,10 @@ function m.play(state, x, y)
 	state.validMoves[index] = nil
 end
 
+function m.compactState(state)
+	return { nextPlayer = state.nextPlayer }
+end
+
 function m.getReward(state, result)
 	if result == 'draw' then
 		return 0.5

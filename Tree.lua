@@ -97,6 +97,11 @@ function m.expandNode(tree, node, rule)
 
 	tree.nodeExpansionProgress[node] = progress + 1
 
+	-- Game state is no longer needed
+	if m.isFullyExpanded(tree, node) then
+		tree.nodeState[node] = rule.compactState(tree.nodeState[node])
+	end
+
 	return nodeToExpand
 end
 
