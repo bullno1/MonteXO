@@ -65,21 +65,12 @@ local function swap(array, index1, index2)
     array[index1], array[index2] = array[index2], array[index1]
 end
 
-function shuffle(array, counter)
-    while counter > 1 do
-        local index = math.random(counter)
-        swap(array, index, counter)
-        counter = counter - 1
-    end
-end
-
 function m.expandNode(tree, node, rule)
 	local progress = tree.nodeExpansionProgress[node]
 	local state = m.getState(tree, node)
 
 	if progress == nil then -- not yet started
-		local moves, numMoves = rule.getValidMoves(state)
-		shuffle(moves, numMoves)
+		local moves, numMoves = rule.getValidMoves(state, true)
 
 		local newNode = tree.numNodes
 		for i, move in ipairs(moves) do

@@ -2,24 +2,28 @@ local Rule = require('Rule')
 local Grid = require('Grid')
 local Mcts = require('Mcts')
 
-local TILE_WIDTH = 20
-local TILE_HEIGHT = 20
-local GAP = 3
+local TILE_WIDTH = 30
+local TILE_HEIGHT = 30
+local GAP = 5
 
 local game, mctsCfg
 
 function love.load()
-	game = Rule.newGame(10, 10, 5)
+	game = Rule.newGame(15, 15, 5)
 	mctsCfg = {
 		rule = Rule,
-		exploreParam = 1.3,
-		maxIterations = 50000,
-		thinkTime = 5.0,
+		exploreParam = 0.5,
+		maxIterations = 60000,
+		thinkTime = 7.0,
 	}
 
 	function mctsCfg.canKeepThinking()
 		mctsCfg.numIterations = mctsCfg.numIterations - 1
 		return mctsCfg.numIterations > 0
+	end
+
+	function mctsCfg.canKeepThinking()
+		return love.timer.getTime() - mctsCfg.startTime < mctsCfg.thinkTime
 	end
 
 	--local move = Mcts.think(mctsCfg, game)
@@ -91,6 +95,7 @@ function love.mousereleased(x, y, button)
 		if not isGameFinished(Rule, game) then
 			local startTime = love.timer.getTime()
 			mctsCfg.numIterations = mctsCfg.maxIterations
+			mctsCfg.startTime = startTime
 			local move = Mcts.think(mctsCfg, game)
 			local endTime = love.timer.getTime( )
 			print("Think time:", endTime - startTime)

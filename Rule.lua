@@ -95,13 +95,29 @@ function m.isResultTerminal(result)
 	return result == 'x' or result == 'o' or result == 'draw'
 end
 
-function m.getValidMoves(state)
+local function calculateMoveDistance(board, index, x, y)
+	local indexX, indexY = Grid.fromIndex(board, index)
+	local diffX = x - indexX
+	local diffY = y - indexY
+	return diffX * diffX + diffY * diffY
+end
+
+function m.getValidMoves(state, sorted)
 	local moves = {}
 	local numMoves = 0
 
 	for move in pairs(state.validMoves) do
 		numMoves = numMoves + 1
 		moves[numMoves] = move
+	end
+
+	local lastX, lastY = state.lastX, state.lastY
+	if sorted and lastX ~= nil then
+		table.sort(moves, function(lhs, rhs)
+			local lhsDistanceSquared = calculateMoveDistance(state.board, lhs, lastX, lastY)
+			local rhsDistanceSquared = calculateMoveDistance(state.board, rhs, lastX, lastY)
+			return lhsDistanceSquared < rhsDistanceSquared
+		end)
 	end
 
 	return moves, numMoves
