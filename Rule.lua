@@ -36,33 +36,35 @@ function m.clone(state)
 	}
 end
 
-local function checkWinDir(board, winRequirement, x, y, vx, vy)
-	local maxX = x + vx * (winRequirement - 1)
-	local maxY = y + vy * (winRequirement - 1)
-	if not Grid.isValid(board, maxX, maxY) then return false end
+local function countPieces(board, piece, x, y, vx, vy)
+	local count = 0
 
-	local piece = Grid.get(board, x, y)
-	for i = 1, winRequirement - 1 do
-		local checkX = x + vx * i
-		local checkY = y + vy * i
-		local checkPiece = Grid.get(board, checkX, checkY)
+	while true do
+		x = x + vx
+		y = y + vy
 
-		if checkPiece ~= piece then return false end
+		if not Grid.isValid(board, x, y) then return count end
+		if Grid.get(board, x, y) ~= piece then return count end
+
+		count = count + 1
 	end
+end
 
-	return true
+local function checkWinDir(board, winRequirement, x, y, vx, vy)
+	local piece = Grid.get(board, x, y)
+
+	local forwardStride = countPieces(board, piece, x, y, vx, vy)
+	local backwardStride = countPieces(board, piece, x, y, -vx, -vy)
+
+	return forwardStride + backwardStride + 1 >= winRequirement
 end
 
 local function checkWin(board, winRequirement, x, y)
 	return false
-		or checkWinDir(board, winRequirement, x, y, -1, -1)
-		or checkWinDir(board, winRequirement, x, y, -1, 0)
-		or checkWinDir(board, winRequirement, x, y, -1, 1)
-		or checkWinDir(board, winRequirement, x, y, 0, -1)
-		or checkWinDir(board, winRequirement, x, y, 0, 1)
-		or checkWinDir(board, winRequirement, x, y, 1, -1)
 		or checkWinDir(board, winRequirement, x, y, 1, 0)
+		or checkWinDir(board, winRequirement, x, y, 0, 1)
 		or checkWinDir(board, winRequirement, x, y, 1, 1)
+		or checkWinDir(board, winRequirement, x, y, 1, -1)
 end
 
 local function getOpponent(piece)
