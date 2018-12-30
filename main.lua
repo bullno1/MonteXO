@@ -10,13 +10,11 @@ local game, mctsCfg
 
 function love.load()
 	game = Rule.newGame(8, 8, 5)
-	--game = Rule.newGame(3, 3, 3)
 	mctsCfg = {
 		rule = Rule,
 		exploreParam = 1.5,
-		numIterations = 20000,
+		numIterations = 50000,
 	}
-	jit.on(Mcts.think, true)
 
 	--local move = Mcts.think(mctsCfg, game)
 	--Rule.play(game, move)
@@ -79,10 +77,7 @@ function love.mousereleased(x, y, button)
 
 		if not isGameFinished(Rule, game) then
 			local startTime = love.timer.getTime()
-			collectgarbage("stop")
 			local move = Mcts.think(mctsCfg, game)
-			collectgarbage()
-			collectgarbage("restart")
 			local endTime = love.timer.getTime( )
 			print("Think time:", endTime - startTime)
 
