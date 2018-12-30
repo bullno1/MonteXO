@@ -110,8 +110,9 @@ function m.expandNode(tree, node, rule)
 end
 
 function m.backpropagate(tree, node, rule, result)
+	local nodeVisitCount = tree.nodeVisitCount
 	repeat
-		tree.nodeVisitCount[node] = tree.nodeVisitCount[node] + 1
+		nodeVisitCount[node] = nodeVisitCount[node] + 1
 
 		local state = m.getState(tree, node)
 		local reward = rule.getReward(state, result)

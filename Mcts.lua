@@ -2,21 +2,33 @@ local Tree = require('Tree')
 
 local m = {}
 
-local function uct(tree, node, exploreParam)
-	local parent = Tree.getParent(tree, node)
-	local reward, numVisits = Tree.getStats(tree, node)
-	local parentReward, numParentVisits = Tree.getStats(tree, parent)
+local getState = Tree.getState
+local getStats = Tree.getStats
+local getParent = Tree.getParent
+local expandNode = Tree.expandNode
+local backpropagate = Tree.backpropagate
+local isFullyExpanded = Tree.isFullyExpanded
+local getFirstChild = Tree.getFirstChild
+local getNextSibling = Tree.getNextSibling
+local getNumChildren = Tree.getNumChildren
+local log = math.log
+local sqrt = math.sqrt
 
-	return (reward / numVisits) + exploreParam * math.sqrt(math.log(numParentVisits) / numVisits)
+local function uct(tree, node, exploreParam)
+	local parent = getParent(tree, node)
+	local reward, numVisits = getStats(tree, node)
+	local parentReward, numParentVisits = getStats(tree, parent)
+
+	return (reward / numVisits) + exploreParam * sqrt(log(numParentVisits) / numVisits)
 end
 
 local function findBestChild(tree, node, evaluationFn)
-	local bestChild = Tree.getFirstChild(tree, node)
+	local bestChild = getFirstChild(tree, node)
 	local bestScore = evaluationFn(tree, bestChild)
 
 	local currentChild = bestChild
-	for i = 2, Tree.getNumChildren(tree, node) do
-		currentChild = Tree.getNextSibling(tree, currentChild)
+	for i = 2, getNumChildren(tree, node) do
+		currentChild = getNextSibling(tree, currentChild)
 		local currentScore = evaluationFn(tree, currentChild)
 		if currentScore > bestScore then
 			bestChild = currentChild
@@ -31,7 +43,7 @@ end
 local function selectNode(tree, root, evaluationFn)
 	local currentNode = root
 
-	while Tree.isFullyExpanded(tree, currentNode) do
+	while isFullyExpanded(tree, currentNode) do
 		currentNode = findBestChild(tree, currentNode, evaluationFn)
 	end
 
@@ -42,20 +54,26 @@ end
 local function simulate(rule, state)
 	local state = rule.clone(state)
 
+	local checkState = rule.checkState
+	local isResultTerminal = rule.isResultTerminal
+	local getValidMoves = rule.getValidMoves
+	local play = rule.play
+	local random = math.random
+
 	while true do
-		local result = rule.checkState(state)
-		if rule.isResultTerminal(result) then
+		local result = checkState(state)
+		if isResultTerminal(result) then
 			return result
 		end
 
-		local moves, numMoves = rule.getValidMoves(state)
-		local chosenMove = moves[math.random(numMoves)]
-		rule.play(state, chosenMove)
+		local moves, numMoves = getValidMoves(state)
+		local chosenMove = moves[random(numMoves)]
+		play(state, chosenMove)
 	end
 end
 
 local function getVisitCount(tree, node)
-	local reward, numVisits = Tree.getStats(tree, node)
+	local reward, numVisits = getStats(tree, node)
 	return numVisits
 end
 
@@ -70,20 +88,21 @@ function m.think(cfg, state)
 		return uct(tree, node, exploreParam)
 	end
 
+	local checkState = rule.checkState
+	local isResultTerminal = rule.isResultTerminal
+
 	for i = 1, cfg.numIterations do
 		local node = selectNode(tree, root, calculateSelectScore)
-		local result = rule.checkState(Tree.getState(tree, node))
+		local result = checkState(getState(tree, node))
 
-		if not rule.isResultTerminal(result) then
+		if not isResultTerminal(result) then
 			local oldNode = node
-			node = Tree.expandNode(tree, node, rule)
-			--print('expand', oldNode, node, Tree.getMove(tree, node))
-			local state = Tree.getState(tree, node)
+			node = expandNode(tree, node, rule)
+			local state = getState(tree, node)
 			result = simulate(rule, state)
-			--print('simulate', node, result)
 		end
 
-		Tree.backpropagate(tree, node, rule, result)
+		backpropagate(tree, node, rule, result)
 	end
 
 	local bestChild = findBestChild(tree, root, getVisitCount)
