@@ -28,12 +28,13 @@ function love.draw()
 	local boardWidth, boardHeight = Grid.getSize(board)
 	for x = 1, boardWidth do
 		for y = 1, boardHeight do
-			love.graphics.rectangle(
-				'line', (x - 1) * TILE_WIDTH, (y - 1) * TILE_HEIGHT,
-				TILE_WIDTH, TILE_HEIGHT
-			)
-
 			local piece = Grid.get(board, x, y)
+			if x == game.lastX and y == game.lastY then
+				love.graphics.setColor(1, 0, 0, 1)
+			else
+				love.graphics.setColor(1, 1, 1, 1)
+			end
+
 			if piece == 'x' then
 				local left = (x - 1) * TILE_WIDTH + GAP
 				local right = left + TILE_WIDTH - GAP * 2
@@ -50,6 +51,12 @@ function love.draw()
 					TILE_WIDTH / 2 - GAP
 				)
 			end
+
+			love.graphics.setColor(1, 1, 1, 1)
+			love.graphics.rectangle(
+				'line', (x - 1) * TILE_WIDTH, (y - 1) * TILE_HEIGHT,
+				TILE_WIDTH, TILE_HEIGHT
+			)
 		end
 	end
 
