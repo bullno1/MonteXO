@@ -30,6 +30,14 @@ function love.update(dt)
 	AI.update(ai)
 end
 
+local function getSymbolOwner(symbol)
+	if symbol == humanPlayer then
+		return 'Human'
+	else
+		return 'AI'
+	end
+end
+
 function love.draw()
 	local board = game.board
 	local boardWidth, boardHeight = Grid.getSize(board)
@@ -67,7 +75,13 @@ function love.draw()
 		end
 	end
 
-	love.graphics.print(Rule.checkState(game), 0, boardHeight * TILE_HEIGHT + GAP)
+	local gameState = Rule.checkState(game)
+	if gameState == 'x' or gameState == 'o' then
+		gameState = getSymbolOwner(gameState) .. ' won'
+	end
+
+	love.graphics.print('Status: '..gameState, 0, boardHeight * TILE_HEIGHT + GAP)
+	love.graphics.print('Current turn: '..getSymbolOwner(game.nextPlayer), 0, boardHeight * TILE_HEIGHT + GAP * 4)
 end
 
 function love.keypressed(key, scancode, isRepeat)
