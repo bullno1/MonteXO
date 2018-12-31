@@ -92,7 +92,7 @@ function m.think(cfg, state)
 	local checkState = rule.checkState
 	local isResultTerminal = rule.isResultTerminal
 
-	while canKeepThinking() do
+	while canKeepThinking(cfg) do
 		local node = selectNode(tree, root, calculateSelectScore)
 		local result = checkState(getState(tree, node))
 

@@ -1,38 +1,33 @@
 local Rule = require('Rule')
 local Grid = require('Grid')
-local Mcts = require('Mcts')
+local AI = require('AI')
+local ThreadPool = require('ThreadPool')
 
 local TILE_WIDTH = 30
 local TILE_HEIGHT = 30
 local GAP = 5
 
-local game, mctsCfg
+local game, humanPlayer, ai
 
 function love.load()
+	threadPool = ThreadPool.new()
 	game = Rule.newGame(10, 10, 5)
-	mctsCfg = {
-		rule = Rule,
-		exploreParam = 0.6,
-		maxIterations = 60000,
-		thinkTime = 6.0,
+	ai = AI.new {
+		mcts = {
+			exploreParam = 0.6,
+			numIterations = 60000,
+			thinkTime = 6.0,
+			limit = 'time',
+		},
+		game = game,
+		threadPool = threadPool,
 	}
-
-	-- Limit search using number of iterations
-	function mctsCfg.canKeepThinking()
-		mctsCfg.numIterations = mctsCfg.numIterations - 1
-		return mctsCfg.numIterations > 0
-	end
-
-	-- Limit search using time
-	function mctsCfg.canKeepThinking()
-		return love.timer.getTime() - mctsCfg.startTime < mctsCfg.thinkTime
-	end
-
-	--local move = Mcts.think(mctsCfg, game)
-	--Rule.play(game, move)
+	humanPlayer = 'x'
 end
 
 function love.update(dt)
+	ThreadPool.update(threadPool)
+	AI.update(ai)
 end
 
 function love.draw()
@@ -88,21 +83,14 @@ end
 function love.mousereleased(x, y, button)
 	if isGameFinished(Rule, game) then return end
 
-	local boardX = math.floor(x / TILE_WIDTH) + 1
-	local boardY = math.floor(y / TILE_HEIGHT) + 1
+	if game.nextPlayer == humanPlayer then
+		local boardX = math.floor(x / TILE_WIDTH) + 1
+		local boardY = math.floor(y / TILE_HEIGHT) + 1
 
-	if Rule.isValid(game, boardX, boardY) then
-		Rule.play(game, boardX, boardY)
+		if Rule.isValid(game, boardX, boardY) then
+			Rule.play(game, boardX, boardY)
 
-		if not isGameFinished(Rule, game) then
-			local startTime = love.timer.getTime()
-			mctsCfg.numIterations = mctsCfg.maxIterations
-			mctsCfg.startTime = startTime
-			local move = Mcts.think(mctsCfg, game)
-			local endTime = love.timer.getTime( )
-			print("Think time:", endTime - startTime)
-
-			Rule.play(game, move)
+			if not isGameFinished(Rule, game) then AI.think(ai) end
 		end
 	end
 end
