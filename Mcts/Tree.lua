@@ -61,10 +61,6 @@ function m.isFullyExpanded(tree, node)
 	return progress ~= nil and progress >= m.getNumChildren(tree, node)
 end
 
-local function swap(array, index1, index2)
-    array[index1], array[index2] = array[index2], array[index1]
-end
-
 function m.expandNode(tree, node, rule)
 	local progress = tree.nodeExpansionProgress[node]
 	local state = m.getState(tree, node)
