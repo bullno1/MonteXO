@@ -108,7 +108,7 @@ function m.think(cfg, state)
 
 	local bestChild = findBestChild(tree, root, getVisitCount)
 	--print('chose move', bestChild, Tree.getMove(tree, bestChild))
-	return Tree.getMove(tree, bestChild)
+	return Tree.getMove(tree, bestChild), Tree.getStats(tree, bestChild)
 end
 
 return m

@@ -1,6 +1,7 @@
 local Mcts = require('Mcts')
 local Rule = require('Rule')
 local ThreadPool = require('ThreadPool')
+local ParallelMap = require('ThreadPool.ParallelMap')
 love.timer = require('love.timer')
 
 local m = {}
@@ -19,21 +20,36 @@ function m.new(cfg)
 end
 
 function m.update(ai)
-	if ai.reqId == nil then return end
+	if ai.reqHandle == nil then return end
 
-	local finished, success, resultOrError = ThreadPool.collectResult(ai.threadPool, ai.reqId)
+	local finished, success, resultOrErrors = ParallelMap.collect(ai.threadPool, ai.reqHandle)
 	if not finished then return end
-	if not success then return error(resultOrError, 0) end
 
-	ai.reqId = nil
-	Rule.play(ai.game, resultOrError)
+	for i, v in ipairs(success) do
+		if not v then return error(resultOrErrors[i], 0) end
+	end
+
+	table.sort(resultOrErrors, function(lhs, rhs)
+		return lhs[3] > rhs[3]
+	end)
+
+	ai.reqHandle = nil
+	Rule.play(ai.game, resultOrErrors[1][1])
 end
 
 function m.think(ai)
-	ai.reqId = ThreadPool.execute(ai.threadPool, 'AI', '_think', ai.mcts, ai.game)
+	local args = {}
+	for i = 1, love.system.getProcessorCount() do
+		args[i] = { ai.mcts, ai.game, math.random() }
+	end
+
+	ai.reqHandle = ParallelMap.execute(ai.threadPool, 'AI', '_think', args)
 end
 
-function m._think(cfg, game)
+function m._think(args)
+	local cfg, game, seed = unpack(args)
+	math.randomseed(seed)
+
 	cfg.startTime = love.timer.getTime()
 	cfg.rule = Rule
 
@@ -43,7 +59,7 @@ function m._think(cfg, game)
 		cfg.canKeepThinking = checkNumIterations
 	end
 
-	return Mcts.think(cfg, game)
+	return { Mcts.think(cfg, game) }
 end
 
 return m
