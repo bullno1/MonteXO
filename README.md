@@ -16,6 +16,7 @@ Click on any tile to put your piece.
 
 ## Known issues
 
-Sometime, the AI is too focused on building its own chain that it ignores obvious threats.
-Some paramters could be tweaked but I have not found the right values.
-Some domain knowledge of the game could be added to `Rule.getValidMoves` but I do not really have any.
+* Sometime, the AI is too focused on building its own chain that it ignores obvious threats.
+  Some paramters could be tweaked but I have not found the right values.
+  Some domain knowledge of the game could be added to `Rule.getValidMoves` but I do not really have any.
+* LuaJIT will run out of memory in some cases: http://lua.2524044.n2.nabble.com/Re-LuaJIT-strange-memory-limit-td5728104.html
