@@ -15,9 +15,9 @@ function love.load()
 	ai = AI.new {
 		mcts = {
 			exploreParam = 0.6,
-			numIterations = 60000,
+			numIterations = 40000,
 			thinkTime = 6.0,
-			limit = 'time',
+			limit = 'iteration',
 		},
 		game = game,
 		threadPool = threadPool,
