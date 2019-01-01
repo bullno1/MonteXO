@@ -1,4 +1,5 @@
 local Mcts = require('Mcts')
+local Tree = require('Mcts.Tree')
 local Rule = require('Rule')
 local ThreadPool = require('ThreadPool')
 local ParallelMap = require('ThreadPool.ParallelMap')
@@ -7,7 +8,7 @@ love.timer = require('love.timer')
 local m = {}
 
 local function checkNumIterations(cfg)
-	cfg.numIterations = mctsCfg.numIterations - 1
+	cfg.numIterations = cfg.numIterations - 1
 	return cfg.numIterations > 0
 end
 
@@ -29,12 +30,25 @@ function m.update(ai)
 		if not v then return error(resultOrErrors[i], 0) end
 	end
 
-	table.sort(resultOrErrors, function(lhs, rhs)
-		return lhs[3] > rhs[3]
-	end)
+	local totalScores = {}
+
+	for i, moves in ipairs(resultOrErrors) do
+		for move, numVisits in pairs(moves) do
+			local currentNumVisits = totalScores[move] or 0
+			totalScores[move] = currentNumVisits + numVisits
+		end
+	end
+
+	local bestMove, bestScore
+	for move, score in pairs(totalScores) do
+		if bestScore == nil or score > bestScore then
+			bestMove = move
+			bestScore = score
+		end
+	end
 
 	ai.reqHandle = nil
-	Rule.play(ai.game, resultOrErrors[1][1])
+	Rule.play(ai.game, bestMove)
 end
 
 function m.think(ai)
@@ -59,7 +73,15 @@ function m._think(args)
 		cfg.canKeepThinking = checkNumIterations
 	end
 
-	return { Mcts.think(cfg, game) }
+	local tree = Mcts.buildTree(cfg, game)
+
+	local moves = {}
+	Tree.forEachChild(tree, Tree.getRoot(tree), function(child)
+		local numWins, numVisits = Tree.getStats(tree, child)
+		local move = Tree.getMove(tree, child)
+		moves[move] = numVisits
+	end)
+	return moves
 end
 
 return m

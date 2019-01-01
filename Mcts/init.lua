@@ -77,7 +77,7 @@ local function getVisitCount(tree, node)
 	return numVisits
 end
 
-function m.think(cfg, state)
+function m.buildTree(cfg, state)
 	local rule = cfg.rule
 	local exploreParam = cfg.exploreParam
 	local canKeepThinking = cfg.canKeepThinking
@@ -105,6 +105,13 @@ function m.think(cfg, state)
 
 		backpropagate(tree, node, rule, result)
 	end
+
+	return tree
+end
+
+function m.think(cfg, state)
+	local tree = m.buildTree(cfg, state)
+	local root = Tree.getRoot(tree)
 
 	local bestChild = findBestChild(tree, root, getVisitCount)
 	--print('chose move', bestChild, Tree.getMove(tree, bestChild))

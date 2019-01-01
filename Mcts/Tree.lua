@@ -115,4 +115,18 @@ function m.backpropagate(tree, node, rule, result)
 	until node == nil
 end
 
+function m.forEachChild(tree, node, fn)
+	local numChildren = m.getNumChildren(tree, node)
+	if numChildren == 0 then return end
+
+	local firstChild = m.getFirstChild(tree, node)
+	fn(firstChild)
+
+	local currentChild = firstChild
+	for i = 2, numChildren do
+		currentChild = m.getNextSibling(tree, currentChild)
+		fn(currentChild)
+	end
+end
+
 return m
