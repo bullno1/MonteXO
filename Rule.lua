@@ -11,18 +11,11 @@ local function cloneTable(table)
 end
 
 function m.newGame(width, height, winRequirement)
-	local validMoves = {}
-
-	for i = 1, width * height do
-		validMoves[i] = true
-	end
-
 	return {
 		board = Grid.new(width, height),
 		winRequirement = winRequirement,
 		nextPlayer = 'x',
 		numEmptyCells = width * height,
-		validMoves = validMoves,
 	}
 end
 
@@ -32,7 +25,6 @@ function m.clone(state)
 		winRequirement = state.winRequirement,
 		nextPlayer = state.nextPlayer,
 		numEmptyCells = state.numEmptyCells,
-		validMoves = cloneTable(state.validMoves),
 	}
 end
 
@@ -102,17 +94,52 @@ local function calculateMoveDistance(board, index, x, y)
 	return diffX * diffX + diffY * diffY
 end
 
-function m.getValidMoves(state, purpose)
+local function findValidMoves(state)
 	local moves = {}
 	local numMoves = 0
 
-	for move in pairs(state.validMoves) do
-		numMoves = numMoves + 1
-		moves[numMoves] = move
+	local width, height = Grid.getSize(state.board)
+	for x = 1, width do
+		for y = 1, height do
+			if m.isValid(state, x, y) then
+				numMoves = numMoves + 1
+				moves[numMoves] = Grid.toIndex(state.board, x, y)
+			end
+		end
 	end
 
+	return moves, numMoves
+end
+
+local function getValidMovesForSimulation(state)
+	local moves, numMoves
+
+	if state.validMoves ~= nil then
+		moves = {}
+		numMoves = 0
+
+		for move in pairs(state.validMoves) do
+			numMoves = numMoves + 1
+			moves[numMoves] = move
+		end
+	else
+		moves, numMoves = findValidMoves(state)
+
+		local validMoves = {}
+		for i = 1, numMoves do
+			validMoves[moves[i]] = true
+		end
+		state.validMoves = validMoves
+	end
+
+	return moves, numMoves
+end
+
+local function getValidMovesForExpansion(state)
+	local moves, numMoves = findValidMoves(state)
+
 	local lastX, lastY = state.lastX, state.lastY
-	if purpose == 'expansion' and lastX ~= nil then
+	if lastX ~= nil then
 		table.sort(moves, function(lhs, rhs)
 			local lhsDistanceSquared = calculateMoveDistance(state.board, lhs, lastX, lastY)
 			local rhsDistanceSquared = calculateMoveDistance(state.board, rhs, lastX, lastY)
@@ -121,6 +148,16 @@ function m.getValidMoves(state, purpose)
 	end
 
 	return moves, numMoves
+end
+
+function m.getValidMoves(state, purpose)
+	if purpose == 'simulation' then
+		return getValidMovesForSimulation(state)
+	elseif purpose == 'expansion' then
+		return getValidMovesForExpansion(state)
+	else
+		return findValidMoves(state)
+	end
 end
 
 function m.isValid(state, x, y)
@@ -144,7 +181,10 @@ function m.play(state, x, y)
 
 	state.nextPlayer = getOpponent(state.nextPlayer)
 	state.numEmptyCells = state.numEmptyCells - 1
-	state.validMoves[index] = nil
+
+	if state.validMoves ~= nil then
+		state.validMoves[index] = nil
+	end
 end
 
 function m.compactState(state)
