@@ -48,6 +48,7 @@ function m.update(ai)
 	end
 
 	ai.reqHandle = nil
+	ai.endTime = love.timer.getTime()
 	Rule.play(ai.game, bestMove)
 end
 
@@ -57,6 +58,7 @@ function m.think(ai)
 		args[i] = { ai.mcts, ai.game, math.random() }
 	end
 
+	ai.startTime = love.timer.getTime()
 	ai.reqHandle = ParallelMap.execute(ai.threadPool, 'AI', '_think', args)
 end
 

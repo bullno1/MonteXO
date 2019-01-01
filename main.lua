@@ -82,6 +82,10 @@ function love.draw()
 
 	love.graphics.print('Status: '..gameState, 0, boardHeight * TILE_HEIGHT + GAP)
 	love.graphics.print('Current turn: '..getSymbolOwner(game.nextPlayer), 0, boardHeight * TILE_HEIGHT + GAP * 4)
+
+	if ai.endTime and ai.endTime > ai.startTime then
+		love.graphics.print('Think time: '..(ai.endTime - ai.startTime), 0, boardHeight * TILE_HEIGHT + GAP * 8)
+	end
 end
 
 function love.keypressed(key, scancode, isRepeat)
